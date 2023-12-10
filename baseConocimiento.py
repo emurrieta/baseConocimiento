@@ -58,10 +58,21 @@ def select_action():
     print("2. Mostrar extensión de una propiedad")
     print("3. Mostrar las clases a las que pertenece un objeto")
     print("4. Mostrar la extension de una relacion")
+    print("5. Mostrar las propiedades de un objeto")
+    print("6. Mostrar las propiedades de una clase")
+    print("7. Mostrar las relaciones de un individuo")
+    print("8. Mostrar las relaciones de una clase")
     print("0. Salir")
 
     choice = input("Ingrese el número de la acción que desea realizar: ")
     return choice
+
+def fixInput(inp):
+    tmp = inp.replace(" ","")
+    tmp = tmp.replace("(","\(")
+    tmp = tmp.replace(")","\)")
+    return tmp
+
 
 def getObjects (class_name, knowledge_base):
     objects = re.findall (r'(\[[^\[\]]+,\[.*?\],\[.*?\]\])', knowledge_base[class_name]['objects'])
@@ -79,6 +90,22 @@ def getObjectRel(obj):
     campos = re.search(r'\[([^\[\]]+),(\[.*?\]),(\[.*?\])\]', obj )
     return  campos.group(3)
 
+def getRelatedObject(relationName,relation):
+    campos = re.findall(r'(\w+=>\w+)', relation )
+    related=[]
+    for rel in campos:
+        negativeRelation=False
+        if re.search(r'not\('+rel+'\)',relation):
+            negativeRelation=True
+        relations = re.findall(r'(\w+)=>(\w+)',rel)
+        for r in relations:
+            if r[0]==relationName:
+                if negativeRelation: 
+                    related.append('not('+r[1]+')') 
+                else: 
+                    related.append(r[1]) 
+    return(related)
+
 def isaParentClass(class_name,knowledge_base):
         for subclase in knowledge_base.keys():
              if class_name == knowledge_base[subclase]['parent']:
@@ -90,7 +117,6 @@ def class_backExtension(class_name, knowledge_base):
     extension = []
 
     extension.append(class_name)
-    print ('back Class ='+class_name)
 
     topclase = knowledge_base[class_name]['parent']
     if topclase != 'top':
@@ -174,27 +200,12 @@ def classes_of_individual(object_name, knowledge_base):
     extension = []
 
     for clase in knowledge_base.keys():
-        obj = knowledge_base[clase]['objects']
-        if len(obj)>2 and object_name == getObjectName(obj): 
-            print ('clase del objeto: ',clase)
-            for c in class_backExtension(clase, knowledge_base):
-                extension.append(c)
-            break
-
-    return extension
-
-# Función para obtener la extensión de una propiedad
-def relation_extension(relation_name, knowledge_base):
-    extension = []
-
-    for clase in knowledge_base.keys():
-        relation = knowledge_base[clase]['rel']
-        print ('relacion '+relation)
-        if len(relation)>2 and re.search(relation_name,relation): 
-            objects = getObjects(clase, knowledge_base) 
-            for obj in objects: 
-                extension.append(obj)
-            break
+        objects = getObjects(clase, knowledge_base)
+        for obj in objects: 
+            if len(obj)>2 and object_name == getObjectName(obj): 
+                for c in class_backExtension(clase, knowledge_base): 
+                    extension.append(c) 
+                break
 
     return extension
 
@@ -210,19 +221,59 @@ def relation_extension(relation_name, knowledge_base):
         if len(relation)>2 and re.search(relation_name,relation): 
             objects = getObjects(clase, knowledge_base) 
             for obj in objects: 
-                nombre=getObjectName(obj)
-                extension.append(nombre)
+                relaciones=getRelatedObject(relation_name,relation) 
+                nombre=getObjectName(obj) 
+                extension.append(nombre+':'+','.join(relaciones))
             break
     
     objects = objects_extension('top', knowledge_base) 
     for obj in objects: 
         rel=getObjectRel(obj)
         if len(rel)>2 and re.search(relation_name,rel): 
+            print(rel)
+            relaciones=getRelatedObject(relation_name,rel)
             nombre=getObjectName(obj)
-            extension.append(nombre)
+            extension.append(nombre+':'+','.join(relaciones))
 
     return extension
 
+# Función para obtener las propiedades de un objeto
+def properties_of_individual(subject_name, knowledge_base):
+    properties = []
+    objects = objects_extension('top', knowledge_base) 
+    for obj in objects: 
+        nombre=getObjectName(obj)
+        if nombre == subject_name:
+            properties.append(getObjectProps(obj).lstrip('[').rstrip(']'))
+            clases = classes_of_individual(nombre,knowledge_base)
+            for c in clases:
+                props = knowledge_base[c]['props'].lstrip('[').rstrip(']').split(',')
+                for p in props: 
+                    properties.append(p)
+            
+    return properties
+
+# Función para obtener las propiedades de una clase
+def class_properties(class_name, knowledge_base):
+    properties=[]
+    classback = class_backExtension(class_name, knowledge_base)
+    for c in classback: 
+        props = knowledge_base[c]['props'].lstrip('[').rstrip(']').split(',') 
+        for p in props: 
+            properties.append(p)
+
+    return properties
+
+# Función para obtener las relaciones de un objeto
+def relations_of_individual(subject_name, knowledge_base):
+    properties = []
+    objects = objects_extension('top', knowledge_base) 
+    for obj in objects: 
+        nombre=getObjectName(obj)
+        if nombre == subject_name:
+            properties.append(getObjectRel(obj).lstrip('[').rstrip(']'))
+            
+    return properties
 
 def main():
 
@@ -236,25 +287,53 @@ def main():
         action = select_action()
 
         if action == '1':
-            clase = input('Mostrar extensión de >')
+            clase = fixInput(input('Mostrar extensión de >'))
             extension = class_extension(clase, base_conocimientos)
+            print("\n----------------------------------------------------")
             print("Extensión de la clase "+clase+": ", extension)
-            print("\n")
+            print("----------------------------------------------------")
         elif action == '2':
-            property_name = input('Mostrar extensión de la propiedad >')
+            property_name = fixInput(input('Mostrar extensión de la propiedad >'))
+            extension = class_extension(clase, base_conocimientos)
             extension = property_extension(property_name, base_conocimientos)
+            print("\n----------------------------------------------------")
             print("Extensión de la propiedad "+property_name+": ", extension)
-            print("\n")
+            print("----------------------------------------------------")
         elif action == '3':
-            object_name = input('Mostrar las clases a las que pertenece el objeto >')
+            object_name = fixInput(input('Mostrar las clases a las que pertenece el objeto >'))
             extension = classes_of_individual(object_name, base_conocimientos)
+            print("\n----------------------------------------------------")
             print("Extensión de la clases de "+object_name+": ", extension)
-            print("\n")
+            print("----------------------------------------------------")
         elif action == '4':
-            relation = input('Mostrar los objetos que tienen la relacion >') 
+            relation = fixInput(input('Mostrar los objetos que tienen la relacion >'))
             extension = relation_extension(relation, base_conocimientos)
+            print("\n----------------------------------------------------")
             print("Extensión de la relacion "+relation+": ", extension[1:])
-            print("\n")
+            print("----------------------------------------------------")
+        elif action == '5':
+            object_name = fixInput(input('Mostrar las propiedades del objeto >'))
+            extension = properties_of_individual(object_name, base_conocimientos)
+            print("\n----------------------------------------------------")
+            print("Propiedades del objeto "+object_name+": ", extension)
+            print("----------------------------------------------------")
+        elif action == '6':
+            object_name = fixInput(input('Mostrar las propiedades de la clase >'))
+            extension = class_properties(object_name, base_conocimientos)
+            print("\n----------------------------------------------------")
+            print("Propiedades del objeto "+object_name+": ", extension)
+            print("----------------------------------------------------")
+        elif action == '7':
+            object_name = fixInput(input('Mostrar las relaciones de un individuo >'))
+            extension = relations_of_individual(object_name, base_conocimientos)
+            print("\n----------------------------------------------------")
+            print("Propiedades del objeto "+object_name+": ", extension)
+            print("----------------------------------------------------")
+        elif action == '8':
+            class_name = fixInput(input('Mostrar las relaciones de una clase >'))
+            extension = class_properties(class_name, base_conocimientos)
+            print("\n----------------------------------------------------")
+            print("Propiedades del objeto "+class_name+": ", extension)
         elif action == '0':
             print("Saliendo del programa.")
             break
