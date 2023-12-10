@@ -1,0 +1,105 @@
+[
+class(top, none, [], [], []),
+
+class(animales, top, [], [], []),
+
+class(aves, animales, [vuelan, not(nadan)], [], []),
+
+class(peces, animales, [nadan, not(bailan)], [],
+    [
+        [id => nemo, [color => naranja], []],
+        [id => dory, [color => azul], []]
+    ]),
+
+class(mamiferos, animales, [not(oviparos)], [], []),
+
+class(mamiferos_marinos, mamiferos, [viven_en_agua,not(vuelan)], [],
+    [
+        [id => shamu, [tam => grande], []],
+        [id => willy, [tam => mediano], []],
+        [id => pablo, [tam => pequeno], []],
+        [id => ruperto, [tam => pequeno], []]
+    ]),
+
+class(aguilas, aves, [], [comen => peces],
+    [
+        [id => pedro, [tam => grande], [not(amigo => arturo)]],
+        [id => eva, [tam => mediano], []],
+        [id => ana, [tam => grande], []],
+        [id => julian, [tam => grande], []]
+    ]),
+
+class(pinguino, aves, [not(vuelan), nadan], [],
+    [
+        [id => arturo, [listo], [amigo => pedro]],
+        [id => mumble, [gracioso], [amigo => eva]],
+        [id => skypper, [feliz], [amigo => mumble]],
+        [id => roberto, [triste], [amigo => pedro]]
+    ]),
+
+class(ornitorrincos, mamiferos, [oviparos], [], []),
+
+class(perros, mamiferos, [not(oviparos),tienen_patas], [],
+    [
+        [id => buddy, [color => marron], [dueno => juan]],
+        [id => max, [color => blanco], [dueno => ana]],
+        [id => tobby, [color => negro], [dueno => maria]],
+        [id => firulais, [color => gris], [dueno => carlos]]
+    ]),
+
+class(gatos, mamiferos, [not(oviparos), tienen_patas], [],
+    [
+        [id => whiskers, [color => gris], [dueno => maria]],
+        [id => mittens, [color => negro], [dueno => carlos]],
+        [id => gloria, [color => blanco], [dueno => juan]],
+        [id => milaneso, [color => naranja], [dueno => ana]]
+    ]),
+
+class(reptiles, animales, [ponen_huevos], [],
+    [
+        [id => lizzy, [tipo => iguana], []],
+        [id => spike, [tipo => lagarto], []],
+        [id => flash, [tam => pequeno], []],
+        [id => cosmo, [tam => mediano], []]
+    ]),
+
+class(serpientes, reptiles, [], [venenosas],
+    [
+        [id => slither, [patron => rayas], []],
+        [id => hiss, [patron => manchas], []],
+        [id => sniper, [patron => puntos], []],
+        [id => spunk, [patron => espirales], []]
+    ]),
+
+class(insectos, animales, [tienen_antenas, exoesqueleto], [],
+    [
+        [id => beers, [color => amarillo], []],
+        [id => mary, [color => multicolor], []],
+        [id => plutarco , [color => negro], []],
+        [id => armando, [color => marron], []]
+    ]),
+
+class(aracnidos, animales, [tienen_ocho_patas, not(vuelan),tejen_telaranas], [],
+    [
+        [id => spid, [tam => pequeno], []],
+        [id => scorp, [tam => mediano], []],
+        [id => charly, [tam => grande], []],
+        [id => tara, [tam => grande], []]
+    ]),
+
+class(mamiferos_voladores, mamiferos, [vuelan], [],
+    [
+        [id => batman, [color => negro], []],
+        [id => robin, [color => marron], []],
+        [id => monica, [color => gris], []],
+        [id => jesus, [color => blanco], []]
+    ]),
+
+class(anfibios, animales, [pueden_vivir_en_agua_y_tierra], [],
+    [
+        [id => fro, [color => verde], []],
+        [id => salamander, [color => marron], []],
+        [id => coco, [color => amarillo], []],
+        [id => stuart, [color => azul], []]
+    ])
+]
