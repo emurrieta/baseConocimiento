@@ -52,6 +52,25 @@ def load_knowledge_base(file_path):
 
     return knowledge_base
 
+def save_knowledge_base(file_path,knowledge_base):
+    #single_line_KB=""
+    counter=0
+
+    newKnowledgeBase = open(file_path, 'w') 
+    print('[', file=newKnowledgeBase)
+    for clase in knowledge_base.keys():
+        print ('class(',clase,',',
+                knowledge_base[clase]['parent'], ',',
+                knowledge_base[clase]['props'], ',',
+                knowledge_base[clase]['rel'], ',',
+                knowledge_base[clase]['objects'],
+                ')',file = newKnowledgeBase, end="")
+        counter+=1
+        if counter<len(knowledge_base):
+            print(',',file = newKnowledgeBase)
+    print('\n]', file=newKnowledgeBase)
+    return
+
 def select_action():
     print("Seleccione una acción:")
     print("1. Mostrar extensión de una clase")
@@ -62,6 +81,8 @@ def select_action():
     print("6. Mostrar las propiedades de una clase")
     print("7. Mostrar las relaciones de un individuo")
     print("8. Mostrar las relaciones de una clase")
+    print("9. Añadir nueva clase")
+    print("10. Añadir nuevo objeto")
     print("0. Salir")
 
     choice = input("Ingrese el número de la acción que desea realizar: ")
@@ -111,6 +132,7 @@ def isaParentClass(class_name,knowledge_base):
              if class_name == knowledge_base[subclase]['parent']:
                  return True
         return False
+
 
 # Función para obtener la extensión hacia atrás de una clase 
 def class_backExtension(class_name, knowledge_base):
@@ -275,6 +297,36 @@ def relations_of_individual(subject_name, knowledge_base):
             
     return properties
 
+# Función para insertar una nueva clase y generar una nueva
+# base de conocimiento
+def add_class(class_name, mother_class,knowledge_base):
+    new_knowledge_base={}
+
+    for key, value in knowledge_base.items(): 
+        new_knowledge_base[key] = value
+        if key==mother_class:
+            new_knowledge_base[class_name] = {}
+            new_knowledge_base[class_name]['parent']  = mother_class
+            new_knowledge_base[class_name]['props']   = []
+            new_knowledge_base[class_name]['rel']     = []
+            new_knowledge_base[class_name]['objects'] = []
+
+    return new_knowledge_base
+
+# Agregar objeto
+def add_object(object_name, mother_class,knowledge_base):
+    new_knowledge_base={}
+
+    objects = getObjects(mother_class,knowledge_base)
+    objects.append('[id=>'+object_name+',[],[]]')
+    knowledge_base[mother_class]['objects']=','.join(objects)
+
+    for key, value in knowledge_base.items(): 
+        new_knowledge_base[key] = value
+
+    return new_knowledge_base
+
+
 def main():
 
     # en WINDOWS requiere el PATH al archivo
@@ -334,6 +386,34 @@ def main():
             extension = class_properties(class_name, base_conocimientos)
             print("\n----------------------------------------------------")
             print("Propiedades del objeto "+class_name+": ", extension)
+        elif action == '9':
+            class_name = fixInput(input('Nombre de la clase >'))
+            mom_class  = fixInput(input('Nombre de la clase madre >'))
+            try: 
+                if base_conocimientos[mom_class]: 
+                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
+                    base_conocimientos = add_class(class_name, mom_class, base_conocimientos) 
+                    save_knowledge_base(new_kb_name, base_conocimientos) 
+                    print("\n----------------------------------------------------") 
+                    print("Definicion nueva clase '"+class_name+"': ", base_conocimientos[class_name])
+            except KeyError: 
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+mom_class+"' desconocida")
+                print("\n")
+        elif action == '10':
+            object_name = fixInput(input('Nombre del objeto >'))
+            mom_class  = fixInput(input('Nombre de la clase madre >'))
+            try: 
+                if base_conocimientos[mom_class]: 
+                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
+                    base_conocimientos=add_object(object_name, mom_class, base_conocimientos)
+                    save_knowledge_base(new_kb_name, base_conocimientos) 
+                    print("\n----------------------------------------------------") 
+                    print("Lista de objetos '"+mom_class+"': ", base_conocimientos[mom_class]['objects'])
+            except KeyError: 
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+mom_class+"' desconocida")
+                print("\n")
         elif action == '0':
             print("Saliendo del programa.")
             break
