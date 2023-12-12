@@ -447,7 +447,7 @@ def main():
                 if base_conocimientos[class_name]: 
                     extension = class_properties(class_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
-                    print("Propiedades del objeto "+class_name+": ", extension) 
+                    print("Propiedades de la clase "+class_name+": ", extension) 
                     print("----------------------------------------------------")
             except KeyError:
                 print("\n----------------------------------------------------") 
@@ -470,9 +470,7 @@ def main():
             mom_class  = fixInput(input('Nombre de la clase madre >'))
             try: 
                 if base_conocimientos[mom_class]: 
-                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
                     base_conocimientos = add_class(class_name, mom_class, base_conocimientos) 
-                    save_knowledge_base(new_kb_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
                     print("Definicion nueva clase '"+class_name+"': ", base_conocimientos[class_name]) 
                     print("----------------------------------------------------")
@@ -485,9 +483,7 @@ def main():
             mom_class  = fixInput(input('Nombre de la clase madre >'))
             try: 
                 if base_conocimientos[mom_class]: 
-                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
                     base_conocimientos=add_object(object_name, mom_class, base_conocimientos)
-                    save_knowledge_base(new_kb_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
                     print("Lista de objetos '"+mom_class+"': ", base_conocimientos[mom_class]['objects']) 
                     print("----------------------------------------------------")
@@ -500,9 +496,7 @@ def main():
             property_name  = fixInput(input('Nombre de la propiedad >'))
             try: 
                 if base_conocimientos[class_name]: 
-                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
                     base_conocimientos = add_class_property(class_name, property_name, base_conocimientos)
-                    save_knowledge_base(new_kb_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
                     print("Propiedades de la clase '"+class_name+"': ", base_conocimientos[class_name]['props'])
                     print("----------------------------------------------------")
@@ -516,9 +510,7 @@ def main():
             property_name  = fixInput(input('Nombre de la propiedad >'))
             try: 
                 if base_conocimientos[class_name]: 
-                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
                     base_conocimientos = add_object_property(object_name, class_name, property_name, base_conocimientos)
-                    save_knowledge_base(new_kb_name, base_conocimientos) 
                     extension = properties_of_individual(object_name, base_conocimientos)
                     print("\n----------------------------------------------------") 
                     print("Propiedades del objeto '"+object_name+"': ",extension) 
