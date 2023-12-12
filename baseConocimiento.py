@@ -4,14 +4,25 @@
 #  Proyecto sobre representacion del conocimiento
 #
 #  Equipo:
-#       Montejano Lopez Donovan Jesus
-#       Murrieta Leon Juan Eduardo
+#       Montejano Lopez Donovan Jesus (1.a -> 1.d)
+#       Murrieta Leon Juan Eduardo    (1.a -> 2.c)
 #
 #  Se implementan los predicados:
-#       class_extension
-#	property_extension
-#	relation_extension
-#	classes_of_individual
+#       1.a class_extension
+#	    1.b property_extension
+#	    1.c relation_extension
+#	    1.d classes_of_individual
+#       1.e properties_of_individual
+#       1.e class_properties
+#       1.f relations_of_individual
+#       1.f class_relations
+#       
+#       2.a add_class
+#       2.a add_object
+#       2.b add_class_property
+#       2.c add_object_property
+#
+#       Opciones para leer y guardar la Base de Conocimiento
 #
 
 import re
@@ -71,7 +82,8 @@ def save_knowledge_base(file_path,knowledge_base):
     print('\n]', file=newKnowledgeBase)
     return
 
-def select_action():
+def select_action(KB):
+    print("----- Base: "+KB+" ---------")
     print("Seleccione una acción:")
     print("1. Mostrar extensión de una clase")
     print("2. Mostrar extensión de una propiedad")
@@ -83,6 +95,11 @@ def select_action():
     print("8. Mostrar las relaciones de una clase")
     print("9. Añadir nueva clase")
     print("10. Añadir nuevo objeto")
+    print("11. Añadir nueva propiedad a una clase")
+    print("12. Añadir nueva propiedad a un objeto")
+    print("..................................")
+    print("13. Guardar Base de Conocimiento")
+    print("14. Cargar Base de Conocimiento")
     print("0. Salir")
 
     choice = input("Ingrese el número de la acción que desea realizar: ")
@@ -106,6 +123,11 @@ def getObjectName(obj):
 def getObjectProps(obj):
     campos = re.search(r'\[([^\[\]]+),(\[.*?\]),(\[.*?\])\]', obj )
     return campos.group(2)
+
+def setObjectProps(obj, properties):
+    campos = re.search(r'\[([^\[\]]+),(\[.*?\]),(\[.*?\])\]', obj )
+    newObj = '['+campos.group(1)+','+properties+','+campos.group(3)+']'
+    return newObj
 
 def getObjectRel(obj):
     campos = re.search(r'\[([^\[\]]+),(\[.*?\]),(\[.*?\])\]', obj )
@@ -132,6 +154,18 @@ def isaParentClass(class_name,knowledge_base):
              if class_name == knowledge_base[subclase]['parent']:
                  return True
         return False
+
+def addProperty(property_name, properties):
+        campos = re.split(r',', properties.lstrip('[').rstrip(']') )
+        campos.append (property_name)
+        props = ','.join(campos)
+        return '['+props+']'
+
+def addRelation(property_name,property_value,properties):
+        campos = re.findall(r'(\w+=>\w+)', properties )
+        campos.append (property_name+'=>'+property_value)
+        props = ','.join(campos)
+        return '['+props+']'
 
 
 # Función para obtener la extensión hacia atrás de una clase 
@@ -266,7 +300,7 @@ def properties_of_individual(subject_name, knowledge_base):
     for obj in objects: 
         nombre=getObjectName(obj)
         if nombre == subject_name:
-            properties.append(getObjectProps(obj).lstrip('[').rstrip(']'))
+            properties.append(re.split(',',getObjectProps(obj).lstrip('[').rstrip(']')))
             clases = classes_of_individual(nombre,knowledge_base)
             for c in clases:
                 props = knowledge_base[c]['props'].lstrip('[').rstrip(']').split(',')
@@ -313,7 +347,8 @@ def add_class(class_name, mother_class,knowledge_base):
 
     return new_knowledge_base
 
-# Agregar objeto
+# Agregar nuevo objeto en la base de conocimiento y generar
+# una nueva base
 def add_object(object_name, mother_class,knowledge_base):
     new_knowledge_base={}
 
@@ -327,6 +362,38 @@ def add_object(object_name, mother_class,knowledge_base):
     return new_knowledge_base
 
 
+# Función para insertar una propiedad a una clase y generar una nueva
+# base de conocimiento
+def add_class_property(class_name, property_name, knowledge_base):
+    new_knowledge_base={}
+
+    for key, value in knowledge_base.items(): 
+        new_knowledge_base[key] = value
+        if key==class_name:
+            properties = new_knowledge_base[class_name]['props']
+            properties = addProperty(property_name, properties)
+            new_knowledge_base[class_name]['props'] = properties
+
+    return new_knowledge_base
+
+# Función para insertar una propiedad a un objeto y generar una nueva
+# base de conocimiento
+def add_object_property(object_name, mother_class, property_name, knowledge_base):
+    new_knowledge_base={}
+
+    new_knowledge_base = knowledge_base
+
+    objects = getObjects(mother_class,knowledge_base)
+    for obj in range(len(objects)): 
+        if object_name == getObjectName(objects[obj]):
+            properties = getObjectProps (objects[obj]) 
+            properties = addProperty(property_name, properties)
+            objects[obj] = setObjectProps(objects[obj],properties)
+            new_knowledge_base[mother_class]['objects'] = '['+','.join(objects)+']'
+
+    return new_knowledge_base
+
+
 def main():
 
     # en WINDOWS requiere el PATH al archivo
@@ -336,7 +403,7 @@ def main():
     base_conocimientos = load_knowledge_base(file_path)
 
     while True:
-        action = select_action()
+        action = select_action(file_path)
 
         if action == '1':
             clase = fixInput(input('Mostrar extensión de >'))
@@ -386,6 +453,7 @@ def main():
             extension = class_properties(class_name, base_conocimientos)
             print("\n----------------------------------------------------")
             print("Propiedades del objeto "+class_name+": ", extension)
+            print("----------------------------------------------------")
         elif action == '9':
             class_name = fixInput(input('Nombre de la clase >'))
             mom_class  = fixInput(input('Nombre de la clase madre >'))
@@ -395,7 +463,8 @@ def main():
                     base_conocimientos = add_class(class_name, mom_class, base_conocimientos) 
                     save_knowledge_base(new_kb_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
-                    print("Definicion nueva clase '"+class_name+"': ", base_conocimientos[class_name])
+                    print("Definicion nueva clase '"+class_name+"': ", base_conocimientos[class_name]) 
+                    print("----------------------------------------------------")
             except KeyError: 
                 print("\n----------------------------------------------------") 
                 print("Error: clase '"+mom_class+"' desconocida")
@@ -409,11 +478,61 @@ def main():
                     base_conocimientos=add_object(object_name, mom_class, base_conocimientos)
                     save_knowledge_base(new_kb_name, base_conocimientos) 
                     print("\n----------------------------------------------------") 
-                    print("Lista de objetos '"+mom_class+"': ", base_conocimientos[mom_class]['objects'])
+                    print("Lista de objetos '"+mom_class+"': ", base_conocimientos[mom_class]['objects']) 
+                    print("----------------------------------------------------")
             except KeyError: 
                 print("\n----------------------------------------------------") 
                 print("Error: clase '"+mom_class+"' desconocida")
                 print("\n")
+        elif action == '11':
+            class_name = fixInput(input('Nombre de la clase >'))
+            property_name  = fixInput(input('Nombre de la propiedad >'))
+            try: 
+                if base_conocimientos[class_name]: 
+                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
+                    base_conocimientos = add_class_property(class_name, property_name, base_conocimientos)
+                    save_knowledge_base(new_kb_name, base_conocimientos) 
+                    print("\n----------------------------------------------------") 
+                    print("Propiedades de la clase '"+class_name+"': ", base_conocimientos[class_name]['props'])
+                    print("----------------------------------------------------")
+            except KeyError: 
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+class_name+"' desconocida")
+                print("\n")
+        elif action == '12':
+            object_name = fixInput(input('Nombre del objeto >'))
+            class_name = fixInput(input('Nombre de la clase del objeto >'))
+            property_name  = fixInput(input('Nombre de la propiedad >'))
+            try: 
+                if base_conocimientos[class_name]: 
+                    new_kb_name = fixInput(input('Nombre la nueva base de conocimiento >')) 
+                    base_conocimientos = add_object_property(object_name, class_name, property_name, base_conocimientos)
+                    save_knowledge_base(new_kb_name, base_conocimientos) 
+                    extension = properties_of_individual(object_name, base_conocimientos)
+                    print("\n----------------------------------------------------") 
+                    print("Propiedades del objeto '"+object_name+"': ",extension) 
+                    print("----------------------------------------------------")
+            except KeyError: 
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+class_name+"' desconocida")
+                print("\n")
+        elif action == '13': 
+            new_kb_name = fixInput(input('Nombre de la base de conocimiento ['+file_path+']>')) 
+            if new_kb_name=="":
+                new_kb_name=file_path
+            save_knowledge_base(new_kb_name, base_conocimientos) 
+        elif action == '14': 
+            new_kb_name = fixInput(input('Nombre de la base de conocimiento ['+file_path+']>')) 
+            if new_kb_name=="":
+                new_kb_name=file_path 
+            try : 
+                base_conocimientos = load_knowledge_base(new_kb_name)
+            except FileNotFoundError:
+                print("\n----------------------------------------------------") 
+                print("Error: Archivo no localizado: "+new_kb_name)
+                print("\n")
+                continue
+            file_path=new_kb_name
         elif action == '0':
             print("Saliendo del programa.")
             break
