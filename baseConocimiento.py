@@ -228,23 +228,23 @@ def property_extension(property_name, knowledge_base):
     for clase in knowledge_base.keys():
         if re.search(property_name,knowledge_base[clase]['props']):
             if re.search('not\('+property_name+'\)',knowledge_base[clase]['props']):
-                hasProperty='no' 
                 for obj in objects_extension(clase,knowledge_base): 
+                    hasProperty='no' 
                     sujeto = getObjectName(obj) 
                     props = getObjectProps(obj) 
                     if re.search('not\('+property_name+'\)',props): 
                         hasProperty='no' 
-                    if re.search(property_name,props): 
+                    elif re.search(property_name,props): 
                         hasProperty='yes' 
                     extension[sujeto]=hasProperty
             else:
-                hasProperty='yes' 
                 for obj in objects_extension(clase,knowledge_base): 
+                    hasProperty='yes' 
                     sujeto = getObjectName(obj) 
                     props = getObjectProps(obj) 
                     if re.search('not\('+property_name+'\)',props): 
                         hasProperty='no' 
-                    if re.search(property_name,props): 
+                    elif re.search(property_name,props): 
                         hasProperty='yes' 
                     extension[sujeto]=hasProperty
 
@@ -407,13 +407,18 @@ def main():
 
         if action == '1':
             clase = fixInput(input('Mostrar extensión de >'))
-            extension = class_extension(clase, base_conocimientos)
-            print("\n----------------------------------------------------")
-            print("Extensión de la clase "+clase+": ", extension)
-            print("----------------------------------------------------")
+            try: 
+                if base_conocimientos[clase]: 
+                    extension = class_extension(clase, base_conocimientos) 
+                    print("\n----------------------------------------------------") 
+                    print("Extensión de la clase "+clase+": ", extension) 
+                    print("----------------------------------------------------")
+            except KeyError: 
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+clase+"' desconocida")
+                print("\n")
         elif action == '2':
             property_name = fixInput(input('Mostrar extensión de la propiedad >'))
-            extension = class_extension(clase, base_conocimientos)
             extension = property_extension(property_name, base_conocimientos)
             print("\n----------------------------------------------------")
             print("Extensión de la propiedad "+property_name+": ", extension)
@@ -437,11 +442,17 @@ def main():
             print("Propiedades del objeto "+object_name+": ", extension)
             print("----------------------------------------------------")
         elif action == '6':
-            object_name = fixInput(input('Mostrar las propiedades de la clase >'))
-            extension = class_properties(object_name, base_conocimientos)
-            print("\n----------------------------------------------------")
-            print("Propiedades del objeto "+object_name+": ", extension)
-            print("----------------------------------------------------")
+            class_name = fixInput(input('Mostrar las propiedades de la clase >'))
+            try: 
+                if base_conocimientos[class_name]: 
+                    extension = class_properties(class_name, base_conocimientos) 
+                    print("\n----------------------------------------------------") 
+                    print("Propiedades del objeto "+class_name+": ", extension) 
+                    print("----------------------------------------------------")
+            except KeyError:
+                print("\n----------------------------------------------------") 
+                print("Error: clase '"+mom_class+"' desconocida")
+                print("\n")
         elif action == '7':
             object_name = fixInput(input('Mostrar las relaciones de un individuo >'))
             extension = relations_of_individual(object_name, base_conocimientos)
